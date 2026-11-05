@@ -1,0 +1,27 @@
+
+local map = vim.keymap.set
+
+-- Telescope 文件导航
+map("n", "<leader>ff", "<cmd>Telescope find_files<CR>",
+    { desc = "Find files" })
+
+map("n", "<leader>fb", "<cmd>Telescope buffers<CR>",
+    { desc = "Find buffers" })
+
+map("n", "<leader>fr", "<cmd>Telescope oldfiles<CR>",
+    { desc = "Recent files" })
+
+map("n", "<leader>fg", "<cmd>Telescope live_grep<CR>",
+    { desc = "Find text in project" })
+
+-- Neo-tree 文件浏览器
+map("n", "<leader>e", "<cmd>Neotree toggle<CR>",
+    { desc = "Toggle file explorer" })
+    
+-- Format current buffer
+map("n", "<leader>cf", function()
+    require("conform").format({
+        async = true,
+        lsp_format = "never",
+    })
+end, { desc = "Format code" })
