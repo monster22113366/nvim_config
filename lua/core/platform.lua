@@ -2,37 +2,34 @@ local M = {}
 
 M.is_windows = vim.fn.has("win32") == 1
 
-M.windows = {
-    tree_sitter_cli_dir =
-        "C:/Users/34903/AppData/Roaming/npm/node_modules/tree-sitter-cli",
+local function find_executable(name)
+    local path = vim.fn.exepath(name)
 
-    gcc = "D:/APP/mingw64/bin/gcc.exe",
-    gpp = "D:/APP/mingw64/bin/g++.exe",
-}
+    if path == "" then
+        return nil
+    end
+
+    return path:gsub("\\", "/")
+end
 
 function M.setup()
     if not M.is_windows then
         return
     end
 
-    vim.env.PATH =
-        M.windows.tree_sitter_cli_dir .. ";" .. vim.env.PATH
-
-    vim.env.CC = M.windows.gcc
-
+    -- Windows clipboard
     vim.g.clipboard = {
-    name = "win32yank",
-    copy = {
-        ["+"] = { "win32yank.exe", "-i", "--crlf" },
-        ["*"] = { "win32yank.exe", "-i", "--crlf" },
-    },
-    paste = {
-        ["+"] = { "win32yank.exe", "-o", "--lf" },
-        ["*"] = { "win32yank.exe", "-o", "--lf" },
-    },
-    cache_enabled = 0,
-}
-
+        name = "win32yank",
+        copy = {
+            ["+"] = { "win32yank.exe", "-i", "--crlf" },
+            ["*"] = { "win32yank.exe", "-i", "--crlf" },
+        },
+        paste = {
+            ["+"] = { "win32yank.exe", "-o", "--lf" },
+            ["*"] = { "win32yank.exe", "-o", "--lf" },
+        },
+        cache_enabled = 0,
+    }
 end
 
 function M.clangd_cmd()
@@ -42,13 +39,16 @@ function M.clangd_cmd()
         "--clang-tidy",
     }
 
-    if M.is_windows then
+    -- Allow clangd to query compilers in the detected GCC directory
+    local gcc = find_executable("gcc")
+
+    if gcc then
+        local directory = vim.fn.fnamemodify(gcc, ":h")
+        directory = directory:gsub("\\", "/")
+
         table.insert(
             cmd,
-            "--query-driver="
-                .. M.windows.gcc
-                .. ","
-                .. M.windows.gpp
+            "--query-driver=" .. directory .. "/*"
         )
     end
 
