@@ -1,69 +1,97 @@
-# Neovim Config
+# Neovim
 
-基于 Lua + lazy.nvim 的轻量级 Neovim 配置，主要用于 C/C++ 开发，兼容 Windows / Linux。
+Ubuntu 24.04 配置，面向 C/C++、嵌入式开发与日常代码阅读。采用模块化 Lua、原生 Neovim 快捷键和 lazy.nvim。
 
-## 功能
-
-- **LSP**：clangd，补全、诊断、跳转
-- **补全**：blink.cmp
-- **语法高亮**：Treesitter
-- **文件搜索**：Telescope
-- **文件管理**：Neo-tree
-- **格式化**：Conform
-- **界面**：OneDark + Lualine
-
-## 依赖
-
-- Neovim ≥ 0.11
-- Git
-- clangd、GCC / G++
-- Tree-sitter CLI
-- Windows：win32yank
-
-## 安装
-
-**Windows（Git Bash）**
+## 1. 安装依赖
 
 ```bash
-git clone https://github.com/monster22113366/nvim_config.git \
-  ~/AppData/Local/nvim
+sudo snap install nvim --classic
+
+sudo apt update
+sudo apt install -y \
+  git build-essential clangd clang-format ripgrep \
+  curl wl-clipboard imagemagick nodejs npm
 ```
 
-**Linux**
+安装 Tree-sitter CLI：
 
 ```bash
-git clone https://github.com/monster22113366/nvim_config.git \
-  ~/.config/nvim
+sudo npm install -g tree-sitter-cli
 ```
 
-启动 `nvim`，配置会自动通过 Git 安装 [lazy.nvim](https://github.com/folke/lazy.nvim)，再由 lazy.nvim 安装其余插件。
+## 2. 安装 Ghostty
 
-无需手动安装插件，也无需将插件本体提交到 Git 仓库。
-
-## 配置结构
-
-```text
-init.lua
-lua/
-├── core/
-│   ├── options.lua
-│   ├── keymaps.lua
-│   ├── platform.lua
-│   └── lsp.lua
-└── plugins/
-    └── *.lua
+```bash
+sudo add-apt-repository ppa:mkasberg/ghostty-ubuntu
+sudo apt update
+sudo apt install ghostty
 ```
 
-- `core/`：基础设置、快捷键、平台适配、LSP
-- `plugins/`：插件独立配置
-- `init.lua`：入口
+Ghostty 配置文件：`~/.config/ghostty/config`。终端建议使用 Nerd Font；彩色文件图标使用 Kitty Graphics Protocol。
 
-## 常用命令
+## 3. 部署 Neovim 配置
+
+配置目录：`~/.config/nvim`。
+
+```bash
+git clone <仓库地址> ~/.config/nvim
+nvim
+```
+
+首次启动时，`lazy.nvim` 会自动安装插件管理器及配置中声明的插件。手动同步：
 
 ```vim
-:Lazy
+:Lazy sync
+:TSUpdate
 :checkhealth
-:LspInfo
 ```
 
-快捷键统一在 `lua/core/keymaps.lua` 中维护。
+## 4. 文件图标
+
+Linux 使用 `real-icons.nvim`，图标资源采用 Fogio 的 JetBrains New UI SVG 文件主题。
+
+请保留仓库中的 `assets/jetbrains-file-icons/` 目录；不要单独移动 SVG 文件。图标显示需要 Ghostty 和支持 Kitty Graphics Protocol 的终端环境。
+
+Ubuntu 24.04 提供 ImageMagick 6。如果配置调用 `magick` 命令，可创建兼容入口：
+
+```bash
+mkdir -p ~/.local/bin
+printf '#!/bin/sh\nexec /usr/bin/convert "$@"\n' > ~/.local/bin/magick
+chmod +x ~/.local/bin/magick
+```
+
+确保 `~/.local/bin` 已加入 `PATH`。
+
+## 5. 常用快捷键
+
+| 按键 | 功能 |
+|---|---|
+| `<Space>ff` | 搜索文件 |
+| `<Space>fg` | 全文搜索 |
+| `<Space>fb` | 搜索 Buffer |
+| `<Space>fr` | 最近文件 |
+| `<Space>e` | Neo-tree |
+| `<Space>cf` | 格式化当前文件 |
+| `gd` | 跳转定义 |
+| `K` | 悬停信息 |
+| `s` | Flash 快速跳转 |
+| `Ctrl+w h/j/k/l` | 切换窗口 |
+
+## 6. 日常维护
+
+```vim
+:Lazy sync       "安装/更新插件
+:TSUpdate        "更新解析器
+:checkhealth     "检查环境
+```
+
+Git 提交配置：
+
+```bash
+git add .
+git diff --cached --stat
+git commit -m "Update Neovim configuration"
+git push
+```
+
+建议提交 `init.lua`、`lua/`、`assets/`、`README.md` 和 `lazy-lock.json`；不要提交插件目录、缓存或编译后的解析器。
